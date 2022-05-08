@@ -42,9 +42,11 @@ class Player:
 
         # 2. IF we are blue, consider our best path vs red's first tile 
         if (blueFlag):
-            # evaluate bestPath[0] vs red's first move (get this from board state??)
-            # to be implemented in the future?
-            action = ("PLACE", bestPath[0][0], bestPath[0][1])
+            numRedTiles, redTiles = getNumTiles(self, 'red')
+            # if red has only placed 1 tile, and that tile is in our best path
+            if(numRedTiles == 1):
+                if redTiles[0] in bestPath:
+                    action = ("STEAL",)
         else:
             action = ("PLACE", bestPath[0][0], bestPath[0][1])
 
@@ -67,4 +69,13 @@ class Player:
         
         return
 
-
+    def getTiles(self, colour):
+        """returns number of tiles of a given colour and their coordinates"""
+        counter=0
+        tiles=[]
+        for x in range(self.boardSize):
+            for y in range(self.boardSize):
+                if (self.board[x][y] == self.colourDict[colour]):
+                    counter+=1
+                    tiles.append((x,y))
+        return counter , tiles
