@@ -42,7 +42,7 @@ class Player:
 
         # 2. IF we are blue, consider our best path vs red's first tile 
         if (blueFlag):
-            numRedTiles, redTiles = getNumTiles(self, 'red')
+            numRedTiles, redTiles = self.getTiles(self, 'red')
             # if red has only placed 1 tile, and that tile is in our best path
             if(numRedTiles == 1):
                 if redTiles[0] in bestPath:
