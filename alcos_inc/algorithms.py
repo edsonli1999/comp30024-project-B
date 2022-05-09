@@ -65,7 +65,7 @@ def lineHeuristicAlgo(board, start, goal, n):
                 nextCost = currCost[currNode] + 1
             if nextNode not in currCost or nextCost < currCost[nextNode]:
                 currCost[nextNode] = nextCost
-                pq.put((distance(nextNo de, goal) + currCost[nextNode], nextNode))
+                pq.put((distance(nextNode, goal) + currCost[nextNode], nextNode))
                 previousDict[nextNode] = currNode
     return previousDict, currCost
 

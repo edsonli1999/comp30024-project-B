@@ -34,18 +34,19 @@ class Player:
         # ("PLACE", r, q) -> played by both RED and BLUE, r:row(x) , q:column(y)
 
         action = ("PLACE", 0 , 0)
+        blueFlag = False
         if (self.colour == 'blue'):
             blueFlag = True
 
         # 1. Get bestPath from helper function
-        bestPath = optimalPathSearch(self.board, self.n)
+        bestPath = optimalPathSearch(self.board, self.boardSize)
 
         # 2. IF we are blue, consider our best path vs red's first tile 
         if (blueFlag):
-            numRedTiles, redTiles = self.getTiles(self, 'red')
-            # if red has only placed 1 tile, and that tile is in our best path
+            numRedTiles, redTiles = self.getTiles('red')
+            # if red has only placed 1 tile, and that reflected(tile) is in our best path
             if(numRedTiles == 1):
-                if redTiles[0] in bestPath:
+                if self.reflected(redTiles[0]) in bestPath:
                     action = ("STEAL",)
         else:
             action = ("PLACE", bestPath[0][0], bestPath[0][1])
@@ -65,7 +66,20 @@ class Player:
         """
         # updates internal state of the game by marking the board with the colour
         # of the player that played the action
-        self.board[action[1]][action[2]] = self.colourDict[player]
+
+        # if opponent chooses to steal, that means we are red
+        # now if we are red, we need to change that 1 tile to blue
+        if action[0] == 'STEAL':
+            numRedTiles, redTiles = self.getTiles('red')
+            x = redTiles[0][0]
+            y = redTiles[0][1]
+            self.board[y][x] = self.colourDict['blue']
+            self.board[x][y] = self.colourDict['open']
+
+        else:
+            x = action[1]
+            y = action[2]
+            self.board[x][y] = self.colourDict[player]
         
         return
 
@@ -78,4 +92,8 @@ class Player:
                 if (self.board[x][y] == self.colourDict[colour]):
                     counter+=1
                     tiles.append((x,y))
-        return counter , tiles
+        return (counter , tiles)
+
+    def reflected(self, coordinate):
+        """ Given (x,y) coordinates, returns (y,x) """
+        return (coordinate[1], coordinate[0])
