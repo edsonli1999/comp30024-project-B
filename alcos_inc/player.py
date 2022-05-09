@@ -39,7 +39,7 @@ class Player:
             blueFlag = True
 
         # 1. Get bestPath from helper function
-        bestPath = optimalPathSearch(self.board, self.boardSize)
+        bestPath = optimalPathSearch(self.board, self.boardSize) 
 
         # 2. IF we are blue, consider our best path vs red's first tile 
         if (blueFlag):
