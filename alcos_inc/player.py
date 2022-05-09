@@ -1,4 +1,5 @@
 from alcos_inc.algorithms import optimalPathSearch
+from random import choice
 
 class Player:
     def __init__(self, player, n):
@@ -12,6 +13,8 @@ class Player:
         """
         self.colour = player
         self.boardSize = n
+        self.turnCount = 1
+        self.oddCount = 0
         # create internal board representation of n x n
         # Open tiles = 0, red = 1, blue = -1
         n_row, n_col = (n,n)
@@ -39,17 +42,21 @@ class Player:
             blueFlag = True
 
         # 1. Get bestPath from helper function
+<<<<<<< HEAD
         bestPath = optimalPathSearch(self.board, self.boardSize) 
+=======
+        bestPath = optimalPathSearch(self.board, self.boardSize, self.colour)
+        randomTile = choice(bestPath)
+>>>>>>> 837bbc209a0a69b84b94a802bf61adc757da8ef7
 
+        action = ("PLACE", randomTile[0], randomTile[1])
         # 2. IF we are blue, consider our best path vs red's first tile 
-        if (blueFlag):
+        if (blueFlag and self.turnCount == 1):
             numRedTiles, redTiles = self.getTiles('red')
             # if red has only placed 1 tile, and that reflected(tile) is in our best path
-            if(numRedTiles == 1):
-                if self.reflected(redTiles[0]) in bestPath:
-                    action = ("STEAL",)
-        else:
-            action = ("PLACE", bestPath[0][0], bestPath[0][1])
+            if self.reflected(redTiles[0]) in bestPath:
+                action = ("STEAL",)
+            
 
         return action
 
@@ -69,6 +76,10 @@ class Player:
 
         # if opponent chooses to steal, that means we are red
         # now if we are red, we need to change that 1 tile to blue
+        self.oddCount += 1
+        if self.oddCount % 2 == 0:
+            self.turnCount += 1
+
         if action[0] == 'STEAL':
             numRedTiles, redTiles = self.getTiles('red')
             x = redTiles[0][0]
