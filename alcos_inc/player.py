@@ -1,5 +1,38 @@
 from alcos_inc.algorithms import optimalPathSearch
 from random import choice
+from numpy import array, roll, zeros, vectorize
+
+# BORROWED CODE FROM BOARD.PY WITH SLIGHT MODIFICATIONS
+
+# Utility function to add two coord tuples
+_ADD = lambda a, b: (a[0] + b[0], a[1] + b[1])
+
+# Neighbour hex steps in clockwise order
+_HEX_STEPS = array([(1, -1), (1, 0), (0, 1), (-1, 1), (-1, 0), (0, -1)], 
+    dtype="i,i")
+
+# Pre-compute diamond capture patterns - each capture pattern is a 
+# list of offset steps:
+# [opposite offset, neighbour 1 offset, neighbour 2 offset]
+#
+# Note that the "opposite cell" offset is actually the sum of
+# the two neighbouring cell offsets (for a given diamond formation)
+#
+# Formed diamond patterns are either "longways", in which case the
+# neighbours are adjacent to each other (roll 1), OR "sideways", in
+# which case the neighbours are spaced apart (roll 2). This means
+# for a given cell, it is part of 6 + 6 possible diamonds.
+_CAPTURE_PATTERNS = [[_ADD(n1, n2), n1, n2] 
+    for n1, n2 in 
+        list(zip(_HEX_STEPS, roll(_HEX_STEPS, 1))) + 
+        list(zip(_HEX_STEPS, roll(_HEX_STEPS, 2)))]
+
+# Maps between player string and internal token type
+_TOKEN_MAP_OUT = { 0: None, 1: "red", 2: "blue" }
+_TOKEN_MAP_IN = {v: k for k, v in _TOKEN_MAP_OUT.items()}
+
+# Map between player token types
+_SWAP_PLAYER = { 0: 0, 1: -1, -1: 1 }
 
 class Player:
     def __init__(self, player, n):
@@ -23,6 +56,8 @@ class Player:
         # colourDict for our int representation of colours
         self.colourDict = {'red': 1, "blue":-1, "open":0}
         
+        # BORROWED FROM BOARD.PY
+        self._data = zeros((n, n), dtype=int)
 
     def action(self):
         """
@@ -42,12 +77,8 @@ class Player:
             blueFlag = True
 
         # 1. Get bestPath from helper function
-<<<<<<< HEAD
-        bestPath = optimalPathSearch(self.board, self.boardSize) 
-=======
         bestPath = optimalPathSearch(self.board, self.boardSize, self.colour)
         randomTile = choice(bestPath)
->>>>>>> 837bbc209a0a69b84b94a802bf61adc757da8ef7
 
         action = ("PLACE", randomTile[0], randomTile[1])
         # 2. IF we are blue, consider our best path vs red's first tile 
@@ -56,8 +87,6 @@ class Player:
             # if red has only placed 1 tile, and that reflected(tile) is in our best path
             if self.reflected(redTiles[0]) in bestPath:
                 action = ("STEAL",)
-            
-
         return action
 
     def turn(self, player, action):
@@ -88,10 +117,13 @@ class Player:
             self.board[x][y] = self.colourDict['open']
 
         else:
-            x = action[1]
-            y = action[2]
-            self.board[x][y] = self.colourDict[player]
-        
+            # x = action[1]
+            # y = action[2]
+            # self.board[x][y] = self.colourDict[player]
+
+            # BORROWED FROM BOARD.PY
+            self.place(player, (action[1], action[2]))
+
         return
 
     def getTiles(self, colour):
@@ -108,3 +140,51 @@ class Player:
     def reflected(self, coordinate):
         """ Given (x,y) coordinates, returns (y,x) """
         return (coordinate[1], coordinate[0])
+
+    # BORROWED FROM BOARD.PY
+    def place(self, token, coord):
+        """
+        Place a token('red' or 'blue') on the board and apply captures if they exist.
+        Return coordinates of captured tokens.
+        """
+        # self[coord] = token
+        self.board[coord[0]][coord[1]]=self.colourDict[token]
+        return self._apply_captures(coord)
+
+    def inside_bounds(self, coord):
+        """
+        True iff coord inside board bounds.
+        """
+        r, q = coord
+        return r >= 0 and r < self.boardSize and q >= 0 and q < self.boardSize
+
+    def _apply_captures(self, coord):
+        """
+        Check coord for diamond captures, and apply these to the board
+        if they exist. Returns a list of captured token coordinates.
+        """
+        # opp_type = self._data[coord]
+        opp_type = self.board[coord[0]][coord[1]]
+        mid_type = _SWAP_PLAYER[opp_type]
+        captured = set()
+
+        # Check each capture pattern intersecting with coord
+        for pattern in _CAPTURE_PATTERNS:
+            coords = [_ADD(coord, s) for s in pattern]
+            # No point checking if any coord is outside the board!
+            if all(map(self.inside_bounds, coords)):
+                # tokens = [self._data[coord] for coord in coords]
+                tokens = [self.board[coord[0]][coord[1]] for coord in coords]
+                if tokens == [opp_type, mid_type, mid_type]:
+                    # Capturing has to be deferred in case of overlaps
+                    # Both mid cell tokens should be captured
+                    captured.update(coords[1:])
+
+        # Remove any captured tokens
+        for coord in captured:
+            # self[coord] = None
+            r = coord[0]
+            q = coord[1]
+            self.board[r][q] = self.colourDict['open']
+
+        return list(captured)
