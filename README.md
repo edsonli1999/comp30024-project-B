@@ -5,6 +5,6 @@ Alcos_inc algorithm made by Savas and Edson to play the University of Melbourne 
 ## Running
 ### To run on shell, input: python3 -m referee <n> <red_player_module> <blue_player_module>
   
-###<n> is the size of the board (n x n)
-###<red_player_module> and <blue_player_module> are the names of the directories that contain the AI code, with player.py in them.
+### <n> is the size of the board (n x n)
+### <red_player_module> and <blue_player_module> are the names of the directories that contain the AI code, with player.py in them.
   
