@@ -1,4 +1,4 @@
-# comp30024-project-B
+# COMP30024 Cachex game playing agent
 
 Alcos_inc algorithm made by Savas and Edson to play the University of Melbourne subject COMP30024 game; Cachex.
 
