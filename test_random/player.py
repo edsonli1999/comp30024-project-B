@@ -1,16 +1,7 @@
-from alcos_inc.algorithms import optimalPathSearch,pathAggregator
-from random import choice
+from test_random.algorithms import optimalPathSearch
 from numpy import array, roll, zeros, vectorize
 
-"""
-Some code below is borrowed and modified from the comp30024 team, 
-specifically from referee/board.py. Any code snippets will be have a comment
-before and after that code snippet, referencing referee/board,py.
-
-"""
-
-############### Borrowed and modified from referee/board.py ###############
-
+# borrowed code from board.py
 # Utility function to add two coord tuples
 _ADD = lambda a, b: (a[0] + b[0], a[1] + b[1])
 
@@ -41,7 +32,6 @@ _TOKEN_MAP_IN = {v: k for k, v in _TOKEN_MAP_OUT.items()}
 # Map between player token types
 _SWAP_PLAYER = { 0: 0, 1: -1, -1: 1 }
 
-###########################################################################
 
 class Player:
     def __init__(self, player, n):
@@ -55,8 +45,6 @@ class Player:
         """
         self.colour = player
         self.boardSize = n
-        self.turnCount = 1
-        self.oddCount = 0
         # create internal board representation of n x n
         # Open tiles = 0, red = 1, blue = -1
         n_row, n_col = (n,n)
@@ -64,9 +52,10 @@ class Player:
 
         # colourDict for our int representation of colours
         self.colourDict = {'red': 1, "blue":-1, "open":0}
-        
+
         # BORROWED FROM BOARD.PY
-        # self._data = zeros((n, n), dtype=int)
+        self._data = zeros((n, n), dtype=int)
+        
 
     def action(self):
         """
@@ -86,20 +75,19 @@ class Player:
             blueFlag = True
 
         # 1. Get bestPath from helper function
-        bestPath = pathAggregator(optimalPathSearch(self.board, self.boardSize, self.colour)[0])
+        bestPath = optimalPathSearch(self.board, self.boardSize)
 
-        if self.turnCount == 1:
-            bestPath.remove((((self.boardSize-1)/2),((self.boardSize-1)/2)))
-        
-        randomTile = choice(bestPath)
-
-        action = ("PLACE", randomTile[0], randomTile[1])
         # 2. IF we are blue, consider our best path vs red's first tile 
-        if (blueFlag and self.turnCount == 1):
+        if (blueFlag == True):
             numRedTiles, redTiles = self.getTiles('red')
             # if red has only placed 1 tile, and that reflected(tile) is in our best path
-            if self.reflected(redTiles[0]) in bestPath:
+            if(numRedTiles == 1) & (self.reflected(redTiles[0]) in bestPath):
                 action = ("STEAL",)
+            else:
+                action = ("PLACE", bestPath[0][0], bestPath[0][1])
+        else:
+            action = ("PLACE", bestPath[0][0], bestPath[0][1])
+
         return action
 
     def turn(self, player, action):
@@ -118,19 +106,18 @@ class Player:
 
         # if opponent chooses to steal, that means we are red
         # now if we are red, we need to change that 1 tile to blue
-        self.oddCount += 1
-        if self.oddCount % 2 == 0:
-            self.turnCount += 1
-
         if action[0] == 'STEAL':
             numRedTiles, redTiles = self.getTiles('red')
-            x = redTiles[0][0]
-            y = redTiles[0][1]
-            self.board[y][x] = self.colourDict['blue']
-            self.board[x][y] = self.colourDict['open']
+            r = redTiles[0][0]
+            q = redTiles[0][1]
+            self.board[q][r] = self.colourDict['blue']
+            self.board[r][q] = self.colourDict['open']
 
         else:
-            # BORROWED FROM BOARD.PY
+            # x = action[1]
+            # y = action[2]
+            # self.board[x][y] = self.colourDict[player]
+            # NEED TO CHECK FOR DIAMOND CAPTURES, AND UPDATE INTERNAL REPRESENTATION
             self.place(player, (action[1], action[2]))
 
         return
@@ -150,12 +137,13 @@ class Player:
         """ Given (x,y) coordinates, returns (y,x) """
         return (coordinate[1], coordinate[0])
 
-############### Borrowed and modified from referee/board.py ###############
+    
 
+    # borrowed code from board.py
     def place(self, token, coord):
         """
-        Place a token('red' or 'blue') on the board and apply captures if 
-        they exist. Return coordinates of captured tokens.
+        Place a token('red' or 'blue') on the board and apply captures if they exist.
+        Return coordinates of captured tokens.
         """
         # self[coord] = token
         self.board[coord[0]][coord[1]]=self.colourDict[token]
@@ -198,5 +186,3 @@ class Player:
             self.board[r][q] = self.colourDict['open']
 
         return list(captured)
-
-###########################################################################
