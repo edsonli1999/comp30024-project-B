@@ -80,30 +80,39 @@ def lineHeuristicAlgo(board, start, goal, n, colour):
 def optimalPathSearch(board, n, colour):
     bestCost = n*n
     bestPath = []
+    pathList = {}
     for x in range(0,n):
         for y in range (0,n):
             if colour == 'red':
-                if board[0][x] not in (0, colourDict[colour]) or board[n-1][y] not in (0, colourDict[colour]):
+                if -colourDict[colour] in [board[0][x], board[n-1][y]]:
                     continue
                 previousDict, currCost = lineHeuristicAlgo(board,(0,x),(n-1,y),n, colour)
 
                 # If there is no valid path, lineHeuristicAlgo will return zero on whathever the goal is - must test for this:
                 if (n-1,y) in currCost.keys():
-                    if currCost[(n-1,y)] < bestCost:
+                    if currCost[(n-1,y)] <= bestCost:
                         bestCost = currCost[(n-1,y)]
                         bestPath = buildPath(previousDict, (n-1,y), board)
+                        pathList[bestPath] = bestCost
             else:
-                if board[x][0] not in (0, colourDict[colour]) or board[y][n-1] not in (0, colourDict[colour]):
+                if -colourDict[colour] in [board[x][0], board[y][n-1]]:
                     continue
                 previousDict, currCost = lineHeuristicAlgo(board,(x,0),(y,n-1),n, colour)
+
                 if (y,n-1) in currCost.keys():
-                    if currCost[(y,n-1)] < bestCost:
+                    if currCost[(y,n-1)] <= bestCost:
                         bestCost = currCost[(y,n-1)]
                         bestPath = buildPath(previousDict, (y,n-1), board)
-    return bestPath
+                        pathList[bestPath] = bestCost
+
+    bestPaths = []
+    for x in pathList.keys():
+        if pathList[x] == bestCost:
+            bestPaths.append(x)
+    
+    return (bestPaths, bestCost)
 
 'Small function to rebuild goal path based on the previous node dictionary, as well as the known cost'
-# Note printTru either < 0 or > 0 to print.
 def buildPath(previousDict: dict, goal, board):
     currNode = tuple(goal)
     path = []
@@ -117,4 +126,20 @@ def buildPath(previousDict: dict, goal, board):
         if board[currNode[0]][currNode[1]] == 0:
             path.append(currNode)
 
-    return path
+    return tuple(path)
+
+def pathAggregator(bestPaths):
+    bestNodes = set()
+    for x in bestPaths:
+        for y in x:
+            bestNodes.add(y)
+    return list(bestNodes)
+
+# Algorithm that tests path length
+def costTest(action, colour, board, n, currCost):
+    board[action[0]][action[1]] = colourDict[colour]
+    if colour == 'red':
+        cost = optimalPathSearch(board,n,'blue')[1]
+    else:
+         cost = optimalPathSearch(board,n,'red')[1]
+    return cost

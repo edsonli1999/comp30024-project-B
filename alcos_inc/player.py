@@ -1,4 +1,4 @@
-from alcos_inc.algorithms import optimalPathSearch
+from alcos_inc.algorithms import optimalPathSearch,pathAggregator
 from random import choice
 
 class Player:
@@ -42,7 +42,11 @@ class Player:
             blueFlag = True
 
         # 1. Get bestPath from helper function
-        bestPath = optimalPathSearch(self.board, self.boardSize, self.colour)
+        bestPath = pathAggregator(optimalPathSearch(self.board, self.boardSize, self.colour)[0])
+
+        if self.turnCount == 1:
+            bestPath.remove((((self.boardSize-1)/2),((self.boardSize-1)/2)))
+        
         randomTile = choice(bestPath)
 
         action = ("PLACE", randomTile[0], randomTile[1])
