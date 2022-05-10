@@ -54,7 +54,7 @@ def lineHeuristicAlgo(board, start, goal, n, colour):
     currCost = {}
     previousDict[tuple(start)] = None
 
-    if board[goal[0]][goal[1]] == colourDict[colour]:
+    if board[start[0]][start[1]] == colourDict[colour]:
         currCost[tuple(start)] = 0
     else:
         currCost[tuple(start)] = 1
@@ -130,10 +130,10 @@ def buildPath(previousDict: dict, goal, board):
 
 def pathAggregator(bestPaths):
     bestNodes = set()
-    for x in bestPaths:
+    for x in bestPaths[0]:
         for y in x:
             bestNodes.add(y)
-    return list(bestNodes)
+    return (list(bestNodes), bestPaths[1])
 
 # Algorithm that tests path length
 def costTest(action, colour, board, n, currCost):
@@ -143,3 +143,27 @@ def costTest(action, colour, board, n, currCost):
     else:
          cost = optimalPathSearch(board,n,'red')[1]
     return cost
+
+def blockStrat(board, n, colour):
+    bestNodes = pathAggregator(optimalPathSearch(board, n, colour))[0]
+    moveWeights = dict((x,0) for x in bestNodes)
+    for futureMove in bestNodes:
+        if colour == 'red':
+            enemyNodes, enemyCostOriginal = pathAggregator(optimalPathSearch(board, n, 'blue'))
+            board[futureMove[0]][futureMove[1]] = colourDict[colour]
+            enemyNodes, enemyCostNew = pathAggregator(optimalPathSearch(board, n, 'blue'))
+            moveWeights[futureMove] = enemyCostNew - enemyCostOriginal
+        else:
+            enemyNodes, enemyCostOriginal = pathAggregator(optimalPathSearch(board, n, 'red'))
+            board[futureMove[0]][futureMove[1]] = colourDict[colour]
+            enemyNodes, enemyCostNew = pathAggregator(optimalPathSearch(board, n, 'red'))
+            moveWeights[futureMove] = enemyCostNew - enemyCostOriginal
+
+        board[futureMove[0]][futureMove[1]] = 0
+
+    maxDamage = max(moveWeights.values())
+    bestMoves = []
+    for move in moveWeights.keys():
+        if moveWeights[move] == maxDamage:
+            bestMoves.append(move)
+    return bestMoves
