@@ -1,3 +1,3 @@
-from alcos_inc.main import main
+from alcos_inc_greedy.main import main
 
 main()

@@ -8,8 +8,8 @@ This script contains the entry point to the program (the code in
 
 import sys
 import json
-from alcos_inc.algorithms import buildPath, lineHeuristicAlgo
-import alcos_inc.util as util
+from alcos_inc_greedy.algorithms import buildPath, lineHeuristicAlgo
+import alcos_inc_greedy.util as util
 
 def main():
     # Import input

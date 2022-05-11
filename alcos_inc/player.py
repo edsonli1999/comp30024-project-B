@@ -86,7 +86,6 @@ class Player:
             blueFlag = True
 
         # 1. Get bestPath from helper function
-
         bestPath = blockStrat(self.board, self.boardSize, self.colour)
 
         if self.turnCount == 1:
@@ -117,12 +116,12 @@ class Player:
         # updates internal state of the game by marking the board with the colour
         # of the player that played the action
 
-        # if opponent chooses to steal, that means we are red
-        # now if we are red, we need to change that 1 tile to blue
         self.oddCount += 1
         if self.oddCount % 2 == 0:
             self.turnCount += 1
 
+        # If opponent chooses to steal, that means we are red
+        # Now if we are red, we need to change that 1 tile to blue
         if action[0] == 'STEAL':
             numRedTiles, redTiles = self.getTiles('red')
             x = redTiles[0][0]

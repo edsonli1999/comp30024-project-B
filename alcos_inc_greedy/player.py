@@ -1,4 +1,4 @@
-from alcos_inc.algorithms import optimalPathSearch
+from alcos_inc_greedy.algorithms import optimalPathSearch
 from random import choice
 from numpy import array, roll, zeros, vectorize
 
