@@ -1,5 +1,5 @@
 from alcos_inc.algorithms import optimalPathSearch,pathAggregator,blockStrat
-from random import choice
+from random import choice, randint
 from numpy import array, roll, zeros, vectorize
 
 """
@@ -86,20 +86,16 @@ class Player:
             blueFlag = True
 
         # 1. Get bestPath from helper function
-        bestPath = blockStrat(self.board, self.boardSize, self.colour)
+        if (self.turnCount ==1):
+            action = ("PLACE", randint(0,self.boardSize-1), randint(0,self.boardSize-1))
+            while (action[1] == (((self.boardSize-1)/2) and action[2] == ((self.boardSize-1)/2))):
+                action = ("PLACE", randint(0,self.boardSize-1), randint(0,self.boardSize-1))
+        else:
+            bestPath = blockStrat(self.board, self.boardSize, self.colour)
 
-        if self.turnCount == 1:
-            if (((self.boardSize-1)/2),((self.boardSize-1)/2)) in bestPath:
-                bestPath.remove((((self.boardSize-1)/2),((self.boardSize-1)/2)))
-        
-        randomTile = choice(bestPath)
+            randomTile = choice(bestPath)
+            action = ("PLACE", randomTile[0], randomTile[1])
 
-        action = ("PLACE", randomTile[0], randomTile[1])
-        # 2. IF we are blue, and its our first turn
-        if (blueFlag and self.turnCount == 1):
-            numRedTiles, redTiles = self.getTiles('red')
-            if self.reflected(redTiles[0]) in bestPath:
-                action = ("STEAL",)
         return action
 
     def turn(self, player, action):
