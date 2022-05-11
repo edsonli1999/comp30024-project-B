@@ -90,10 +90,9 @@ class Player:
         randomTile = choice(bestPath)
 
         action = ("PLACE", randomTile[0], randomTile[1])
-        # 2. IF we are blue, consider our best path vs red's first tile 
+        # 2. IF we are blue, and its our first turn
         if (blueFlag and self.turnCount == 1):
             numRedTiles, redTiles = self.getTiles('red')
-            # if red has only placed 1 tile, and that reflected(tile) is in our best path
             if self.reflected(redTiles[0]) in bestPath:
                 action = ("STEAL",)
         return action
