@@ -65,8 +65,6 @@ class Player:
         # colourDict for our int representation of colours
         self.colourDict = {'red': 1, "blue":-1, "open":0}
         
-        # BORROWED FROM BOARD.PY
-        # self._data = zeros((n, n), dtype=int)
 
     def action(self):
         """
