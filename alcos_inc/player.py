@@ -1,4 +1,4 @@
-from alcos_inc.algorithms import optimalPathSearch
+from alcos_inc.algorithms import optimalPathSearch,pathAggregator,blockStrat
 from random import choice
 from numpy import array, roll, zeros, vectorize
 
@@ -86,7 +86,13 @@ class Player:
             blueFlag = True
 
         # 1. Get bestPath from helper function
-        bestPath = optimalPathSearch(self.board, self.boardSize, self.colour)
+
+        bestPath = blockStrat(self.board, self.boardSize, self.colour)
+
+        if self.turnCount == 1:
+            if (((self.boardSize-1)/2),((self.boardSize-1)/2)) in bestPath:
+                bestPath.remove((((self.boardSize-1)/2),((self.boardSize-1)/2)))
+        
         randomTile = choice(bestPath)
 
         action = ("PLACE", randomTile[0], randomTile[1])
