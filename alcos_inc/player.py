@@ -86,16 +86,19 @@ class Player:
             blueFlag = True
 
         # 1. Get bestPath from helper function
-        if (self.turnCount ==1):
+        if self.turnCount == 1:
             action = ("PLACE", randint(0,self.boardSize-1), randint(0,self.boardSize-1))
             while (action[1] == (int((self.boardSize-1)/2) and action[2] == int((self.boardSize-1)/2))):
                 action = ("PLACE", randint(0,self.boardSize-1), randint(0,self.boardSize-1))
         else:
-            bestPath = blockStrat(self.board, self.boardSize, self.colour)
+            if (self.turnCount < self.boardSize/3 and self.boardSize > 12):
+                bestPath = pathAggregator(optimalPathSearch(self.board, self.boardSize, self.colour))[0]
+            else:
+                bestPath = blockStrat(self.board, self.boardSize, self.colour)
 
             randomTile = choice(bestPath)
             action = ("PLACE", randomTile[0], randomTile[1])
-
+        
         return action
 
     def turn(self, player, action):
