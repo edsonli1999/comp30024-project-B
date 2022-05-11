@@ -88,9 +88,6 @@ class Player:
         # If first turn, pick randomly
         if self.turnCount == 1:
             action = ("PLACE", randint(0,self.boardSize-1), randint(0,self.boardSize-1))
-            # If we are blue, always steal
-            if self.colour == 'blue':
-                action = ("STEAL",)
             # Unless board size < 5, then pick a specific node
             if self.boardSize < 5:
                 action = ("PLACE", 0, self.boardSize-1)
@@ -98,6 +95,9 @@ class Player:
             if (self.boardSize % 2) != 0:
                 while (action[1] == (((self.boardSize-1)//2)) and action[2] == (self.boardSize-1)//2):
                     action = ("PLACE", randint(0,self.boardSize-1), randint(0,self.boardSize-1))
+            # If we are blue, always steal
+            if self.colour == 'blue':
+                action = ("STEAL",)
         # Play normally
         else:
             # Use simpler algorithm if large board and early turns
