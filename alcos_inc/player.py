@@ -88,7 +88,7 @@ class Player:
         # 1. Get bestPath from helper function
         if (self.turnCount ==1):
             action = ("PLACE", randint(0,self.boardSize-1), randint(0,self.boardSize-1))
-            while (action[1] == (((self.boardSize-1)/2) and action[2] == ((self.boardSize-1)/2))):
+            while (action[1] == (int((self.boardSize-1)/2) and action[2] == int((self.boardSize-1)/2))):
                 action = ("PLACE", randint(0,self.boardSize-1), randint(0,self.boardSize-1))
         else:
             bestPath = blockStrat(self.board, self.boardSize, self.colour)
