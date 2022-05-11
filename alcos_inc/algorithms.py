@@ -1,6 +1,6 @@
 from queue import PriorityQueue
 from unittest.mock import _patch_dict
-from numpy import array, roll
+from numpy import array, block, minimum, roll
 
 # colourDict for our int representation of colours
 colourDict = {'red': 1, "blue":-1, "open":0}
@@ -35,11 +35,13 @@ def generateChildren(board, location, n, colour):
             children.append((location[0] + x, location[1] + y))
     return children
 
+'Change co-ordinates from cube to offset'
 def cubeToOffset(node):
     q = node[0] - (node[1] - node[1]&1)/2
     r = node[1]
     return [r,q]
 
+'Change co-ordinates from offset to cube'
 def offsetToCube(node):
     q = node[1] - (node[0] - node[0]&1)/2
     r = node[0]
@@ -100,16 +102,22 @@ def optimalPathSearch(board, n, colour):
     for x in range(0,n):
         for y in range (0,n):
             if colour == 'red':
+                # Check if starting or ending node is of opponents colour
                 if -colourDict[colour] in [board[0][x], board[n-1][y]]:
                     continue
+
+                # Run A*
                 previousDict, currCost = lineHeuristicAlgo(board,(0,x),(n-1,y),n, colour)
 
-                # If there is no valid path, lineHeuristicAlgo will return zero on whathever the goal is - must test for this:
+                # If there is no valid path, lineHeuristicAlgo will return zero on whathever the goal is - must test for this
+                # Otherwise, rebuild the path from the dict that lineHeuristic algo makes
                 if (n-1,y) in currCost.keys():
                     if currCost[(n-1,y)] <= bestCost:
                         bestCost = currCost[(n-1,y)]
                         bestPath = buildPath(previousDict, (n-1,y), board)
+                        # Store the path in pathlist
                         pathList[bestPath] = bestCost
+            # Same as above, but with inverted co-ordinates
             else:
                 if -colourDict[colour] in [board[x][0], board[y][n-1]]:
                     continue
@@ -122,6 +130,7 @@ def optimalPathSearch(board, n, colour):
                         pathList[bestPath] = bestCost
 
     bestPaths = []
+    # If the path has optimal cost, add it to the pathlist
     for x in pathList.keys():
         if pathList[x] == bestCost:
             bestPaths.append(x)
@@ -144,6 +153,7 @@ def buildPath(previousDict: dict, goal, board):
 
     return tuple(path)
 
+# Aggregates all nodes from all paths in optimal path search into one list of nodes
 def pathAggregator(bestPaths):
     bestNodes = set()
     for x in bestPaths[0]:
@@ -160,7 +170,9 @@ def costTest(action, colour, board, n, currCost):
          cost = optimalPathSearch(board,n,'red')[1]
     return cost
 
+# Basic blocking strategy
 def blockStrat(board, n, colour):
+    # Use optimalPathSearch heuristic to find our set of playable tiles
     bestNodes = pathAggregator(optimalPathSearch(board, n, colour))[0]
     moveWeights = dict((x,0) for x in bestNodes)
     for futureMove in bestNodes:
@@ -195,6 +207,7 @@ def blockStrat(board, n, colour):
             bestMoves.append(move)
     return bestMoves
 
+# Re-written in non-OOP language
 def _apply_captures(board, n, coord):
     """
     Check coord for diamond captures, and apply these to the board
@@ -226,13 +239,10 @@ def _apply_captures(board, n, coord):
 
     return list(captured)
 
+# Re-written in non-OOP language
 def inside_bounds(coord, n):
     """
     True iff coord inside board bounds.
     """
     r, q = coord
     return r >= 0 and r < n and q >= 0 and q < n
-
-def miniMax(board, n, colour, func, depth):
-    
-    return 0

@@ -86,13 +86,25 @@ class Player:
             blueFlag = True
 
         # 1. Get bestPath from helper function
+        # If first turn, pick randomly
         if self.turnCount == 1:
             action = ("PLACE", randint(0,self.boardSize-1), randint(0,self.boardSize-1))
-            while (action[1] == (int((self.boardSize-1)/2) and action[2] == int((self.boardSize-1)/2))):
-                action = ("PLACE", randint(0,self.boardSize-1), randint(0,self.boardSize-1))
+            # Unless board size < 5, then pick a specific node
+            if self.boardSize < 5:
+                action = ("PLACE", 0, self.boardSize-1)
+            # Check that it isn't the center node, and change it if it is
+            if (self.boardSize % 2) != 0:
+                while (action[1] == (((self.boardSize-1)//2)) and action[2] == (self.boardSize-1)//2):
+                    action = ("PLACE", randint(0,self.boardSize-1), randint(0,self.boardSize-1))
+            # If we are blue, always steal
+            if self.colour == 'blue':
+                action = ("STEAL",)
+        # Play normally
         else:
+            # Use simpler algorithm if large board and early turns
             if (self.turnCount < self.boardSize/3 and self.boardSize > 12):
                 bestPath = pathAggregator(optimalPathSearch(self.board, self.boardSize, self.colour))[0]
+            # Otherwise play normally
             else:
                 bestPath = blockStrat(self.board, self.boardSize, self.colour)
 
