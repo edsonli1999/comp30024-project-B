@@ -1,8 +1,24 @@
 from queue import PriorityQueue
 from unittest.mock import _patch_dict
+from numpy import array, roll
 
 # colourDict for our int representation of colours
 colourDict = {'red': 1, "blue":-1, "open":0}
+
+# Neighbour hex steps in clockwise order
+_HEX_STEPS = array([(1, -1), (1, 0), (0, 1), (-1, 1), (-1, 0), (0, -1)], 
+    dtype="i,i")
+
+# Utility function to add two coord tuples
+_ADD = lambda a, b: (a[0] + b[0], a[1] + b[1])
+
+# Map between player token types
+_SWAP_PLAYER = { 0: 0, 1: -1, -1: 1 }
+
+_CAPTURE_PATTERNS = [[_ADD(n1, n2), n1, n2] 
+    for n1, n2 in 
+        list(zip(_HEX_STEPS, roll(_HEX_STEPS, 1))) + 
+        list(zip(_HEX_STEPS, roll(_HEX_STEPS, 2)))]
 
 'Heuristic function which calculates node distance to goal based on row and column distance'
 def distance(location,goal):
@@ -148,18 +164,29 @@ def blockStrat(board, n, colour):
     bestNodes = pathAggregator(optimalPathSearch(board, n, colour))[0]
     moveWeights = dict((x,0) for x in bestNodes)
     for futureMove in bestNodes:
+        # Find initial enemy cost
         if colour == 'red':
             enemyNodes, enemyCostOriginal = pathAggregator(optimalPathSearch(board, n, 'blue'))
-            board[futureMove[0]][futureMove[1]] = colourDict[colour]
-            enemyNodes, enemyCostNew = pathAggregator(optimalPathSearch(board, n, 'blue'))
-            moveWeights[futureMove] = enemyCostNew - enemyCostOriginal
         else:
             enemyNodes, enemyCostOriginal = pathAggregator(optimalPathSearch(board, n, 'red'))
-            board[futureMove[0]][futureMove[1]] = colourDict[colour]
-            enemyNodes, enemyCostNew = pathAggregator(optimalPathSearch(board, n, 'red'))
-            moveWeights[futureMove] = enemyCostNew - enemyCostOriginal
+        
+        # Apply one move
+        board[futureMove[0]][futureMove[1]] = colourDict[colour]
+        nodeundo = _apply_captures(board, n, (futureMove[0],futureMove[1]))
 
+        # Find delta enemy cost
+        if colour == 'red':
+            enemyNodes, enemyCostNew = pathAggregator(optimalPathSearch(board, n, 'blue'))
+        else:
+            enemyNodes, enemyCostNew = pathAggregator(optimalPathSearch(board, n, 'red'))
+        
+        # Save and reset board
+        moveWeights[futureMove] = enemyCostNew - enemyCostOriginal
         board[futureMove[0]][futureMove[1]] = 0
+        if nodeundo:
+            for node in nodeundo:
+                board[node[0]][node[1]] = -colourDict[colour]
+
 
     maxDamage = max(moveWeights.values())
     bestMoves = []
@@ -167,3 +194,45 @@ def blockStrat(board, n, colour):
         if moveWeights[move] == maxDamage:
             bestMoves.append(move)
     return bestMoves
+
+def _apply_captures(board, n, coord):
+    """
+    Check coord for diamond captures, and apply these to the board
+    if they exist. Returns a list of captured token coordinates.
+    """
+    # opp_type = self._data[coord]
+    opp_type = board[coord[0]][coord[1]]
+    mid_type = _SWAP_PLAYER[opp_type]
+    captured = set()
+
+    # Check each capture pattern intersecting with coord
+    for pattern in _CAPTURE_PATTERNS:
+        coords = [_ADD(coord, s) for s in pattern]
+        # No point checking if any coord is outside the board!
+        if all(inside_bounds(x,n) for x in coords):
+            # tokens = [self._data[coord] for coord in coords]
+            tokens = [board[coord[0]][coord[1]] for coord in coords]
+            if tokens == [opp_type, mid_type, mid_type]:
+                # Capturing has to be deferred in case of overlaps
+                # Both mid cell tokens should be captured
+                captured.update(coords[1:])
+
+    # Remove any captured tokens
+    for coord in captured:
+        # self[coord] = None
+        r = coord[0]
+        q = coord[1]
+        board[r][q] = colourDict['open']
+
+    return list(captured)
+
+def inside_bounds(coord, n):
+    """
+    True iff coord inside board bounds.
+    """
+    r, q = coord
+    return r >= 0 and r < n and q >= 0 and q < n
+
+def miniMax(board, n, colour, func, depth):
+    
+    return 0
